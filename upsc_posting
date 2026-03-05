@@ -1,0 +1,12 @@
+marks = 82
+
+if marks >= 90:
+    print("Congratulations! You are selected for IAS post.")
+elif marks >= 80:
+    print("You are selected for IPS post.")
+elif marks >= 70:
+    print("You are selected for IFS post.")
+elif marks >= 60:
+    print("You are selected for IRS post.")
+else:
+    print("Sorry! You did not qualify for a government post.")

@@ -2,19 +2,16 @@ import pywhatkit as kit
 import datetime
 import time
 
-message = """Good evening friends😊
-Online class starting at 7 PM.
-Join here:
-https://meet.google.com/uhh-yhhu-idr
+message = """code check 
 """
 
-group_name = "BCA- III Year-BOYS-2026"
+group_name = "Kathi sanda veerargal"
 
 while True:
     now = datetime.datetime.now()
 
     # Check time = 6:55 PM
-    if now.hour == 18 and now.minute == 55:
+    if now.hour == 21 and now.minute == 39:
         kit.sendwhatmsg_to_group_instantly(
             group_name,
             message,
