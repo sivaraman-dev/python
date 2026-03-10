@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EmailCheck — Validator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --card: #16161f;
+      --border: #2a2a3a;
+      --accent: #7c3aed;
+      --accent2: #06b6d4;
+      --success: #10b981;
+      --error: #f43f5e;
+      --warn: #f59e0b;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --white: #ffffff;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glowing orbs */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: -10%;
+      width: 60vw;
+      height: 60vw;
+      background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to { transform: translate(5vw, 5vh) scale(1.1); }
+    }
+
+    .orb2 {
+      position: fixed;
+      bottom: -20%;
+      right: -10%;
+      width: 50vw;
+      height: 50vw;
+      background: radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      animation: drift2 15s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift2 {
+      from { transform: translate(0, 0); }
+      to { transform: translate(-5vw, -5vh); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 56px;
+      animation: slideDown 0.7s cubic-bezier(.16,1,.3,1);
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: #a78bfa;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: #a78bfa;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    h1 {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 0%, #a78bfa 50%, #67e8f9 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 17px;
+      font-weight: 400;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Input card */
+    .input-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 32px;
+      animation: slideUp 0.7s 0.15s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .input-label {
+      display: block;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .email-icon {
+      position: absolute;
+      left: 18px;
+      color: var(--muted);
+      font-size: 18px;
+      pointer-events: none;
+      transition: color 0.3s;
+    }
+
+    #emailInput {
+      flex: 1;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px 16px 50px;
+      font-size: 16px;
+      font-family: 'Space Mono', monospace;
+      color: var(--white);
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      width: 100%;
+    }
+
+    #emailInput::placeholder { color: var(--muted); }
+
+    #emailInput:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+    }
+
+    #emailInput:focus + .email-icon,
+    .input-wrapper:focus-within .email-icon {
+      color: var(--accent);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--accent), #9333ea);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 16px 28px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Syne', sans-serif;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      white-space: nowrap;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(124,58,237,0.4);
+    }
+
+    .btn:hover::before { opacity: 1; }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-text { display: flex; align-items: center; gap: 8px; }
+
+    /* Results */
+    #results {
+      animation: slideUp 0.5s cubic-bezier(.16,1,.3,1);
+      display: none;
+    }
+
+    #results.visible { display: block; }
+
+    /* Score ring */
+    .score-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      margin-bottom: 20px;
+    }
+
+    .score-ring {
+      flex-shrink: 0;
+      position: relative;
+      width: 100px;
+      height: 100px;
+    }
+
+    .score-ring svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .score-ring circle {
+      fill: none;
+      stroke-width: 7;
+      cx: 50;
+      cy: 50;
+      r: 43;
+    }
+
+    .ring-bg { stroke: var(--border); }
+
+    .ring-fill {
+      stroke: var(--accent2);
+      stroke-linecap: round;
+      stroke-dasharray: 270;
+      stroke-dashoffset: 270;
+      transition: stroke-dashoffset 1.2s cubic-bezier(.16,1,.3,1), stroke 0.5s;
+    }
+
+    .score-num {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .score-value {
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .score-label {
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 3px;
+    }
+
+    .score-info { flex: 1; }
+
+    .validity-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 100px;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .validity-badge.valid {
+      background: rgba(16,185,129,0.15);
+      color: var(--success);
+      border: 1px solid rgba(16,185,129,0.3);
+    }
+
+    .validity-badge.invalid {
+      background: rgba(244,63,94,0.15);
+      color: var(--error);
+      border: 1px solid rgba(244,63,94,0.3);
+    }
+
+    .email-display {
+      font-family: 'Space Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--white);
+      word-break: break-all;
+      margin-bottom: 4px;
+    }
+
+    .score-desc {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Checks grid */
+    .checks-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .checks-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 540px) {
+      .checks-grid { grid-template-columns: 1fr; }
+      .score-card { flex-direction: column; text-align: center; }
+      .input-wrapper { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+    }
+
+    .check-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: border-color 0.3s;
+    }
+
+    .check-item.pass { border-color: rgba(16,185,129,0.25); }
+    .check-item.fail { border-color: rgba(244,63,94,0.25); }
+    .check-item.neutral { border-color: rgba(245,158,11,0.25); }
+
+    .check-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 12px;
+      margin-top: 1px;
+    }
+
+    .check-icon.pass { background: rgba(16,185,129,0.2); color: var(--success); }
+    .check-icon.fail { background: rgba(244,63,94,0.2); color: var(--error); }
+    .check-icon.neutral { background: rgba(245,158,11,0.2); color: var(--warn); }
+
+    .check-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .check-msg {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      line-height: 1.4;
+    }
+
+    /* Suggestions */
+    .suggestions-card {
+      background: rgba(245,158,11,0.05);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .suggestions-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--warn);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .suggestion-item {
+      font-size: 13px;
+      color: #fcd34d;
+      padding: 4px 0;
+      padding-left: 18px;
+      position: relative;
+      line-height: 1.5;
+    }
+
+    .suggestion-item::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--warn);
+    }
+
+    /* Try again */
+    .try-more {
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .try-more button {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .try-more button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Loader */
+    .loader {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .loader.visible { display: flex; }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    footer span {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+<div class="orb2"></div>
+
+<div class="container">
+  <header>
+    <div class="badge">✦ Email Intelligence</div>
+    <h1>Email Validator</h1>
+    <p class="subtitle">Instantly check if an email address is valid, well-formed, and trustworthy — powered by Python.</p>
+  </header>
+
+  <div class="input-card">
+    <label class="input-label" for="emailInput">Enter email address</label>
+    <div class="input-wrapper">
+      <input
+        type="text"
+        id="emailInput"
+        placeholder="you@example.com"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <span class="email-icon">@</span>
+      <button class="btn" id="validateBtn" onclick="validateEmail()">
+        <span class="btn-text">
+          <span>Validate</span>
+          <span>→</span>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <div class="loader" id="loader">
+    <div class="spinner"></div>
+    <span>Analysing email…</span>
+  </div>
+
+  <div id="results">
+    <!-- Score Card -->
+    <div class="score-card">
+      <div class="score-ring">
+        <svg viewBox="0 0 100 100">
+          <circle class="ring-bg" cx="50" cy="50" r="43"/>
+          <circle class="ring-fill" id="ringFill" cx="50" cy="50" r="43"/>
+        </svg>
+        <div class="score-num">
+          <span class="score-value" id="scoreValue">0</span>
+          <span class="score-label">Score</span>
+        </div>
+      </div>
+      <div class="score-info">
+        <div class="validity-badge" id="validityBadge">
+          <span id="validityIcon">●</span>
+          <span id="validityText">Checking...</span>
+        </div>
+        <div class="email-display" id="emailDisplay"></div>
+        <div class="score-desc" id="scoreDesc"></div>
+      </div>
+    </div>
+
+    <!-- Suggestions -->
+    <div class="suggestions-card" id="suggestionsCard" style="display:none">
+      <div class="suggestions-title">⚠ Suggestions</div>
+      <div id="suggestionsList"></div>
+    </div>
+
+    <!-- Checks -->
+    <div class="checks-title">Validation Checks</div>
+    <div class="checks-grid" id="checksGrid"></div>
+
+    <div class="try-more">
+      <button onclick="resetForm()">← Try another email</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Built with <span>Python</span> + HTML + CSS + JS &nbsp;|&nbsp; EmailCheck © 2026
+</footer>
+
+<script>
+  const CHECK_LABELS = {
+    format: "Format",
+    length: "Length",
+    local_chars: "Local Part",
+    domain_format: "Domain",
+    tld: "TLD",
+    disposable: "Disposable Check",
+    trusted: "Trusted Provider",
+    typo: "Typo Detection"
+  };
+
+  const input = document.getElementById('emailInput');
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') validateEmail();
+  });
+
+  async function validateEmail() {
+    const email = input.value.trim();
+    if (!email) {
+      input.focus();
+      input.style.borderColor = 'var(--error)';
+      setTimeout(() => input.style.borderColor = '', 1000);
+      return;
+    }
+
+    // Show loader, hide results
+    document.getElementById('loader').classList.add('visible');
+    document.getElementById('results').classList.remove('visible');
+    document.getElementById('validateBtn').disabled = true;
+
+    try {
+      const res = await fetch(`/validate?email=${encodeURIComponent(email)}`);
+      const data = await res.json();
+      renderResults(data);
+    } catch (err) {
+      // Fallback: run client-side basic check
+      renderResults(clientFallback(email));
+    } finally {
+      document.getElementById('loader').classList.remove('visible');
+      document.getElementById('validateBtn').disabled = false;
+    }
+  }
+
+  function clientFallback(email) {
+    // Basic JS fallback if server is unreachable
+    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    const valid = pattern.test(email);
+    return {
+      email,
+      is_valid: valid,
+      score: valid ? 60 : 10,
+      checks: {
+        format: { passed: valid, message: valid ? "Valid format" : "Invalid email format" }
+      },
+      suggestions: valid ? [] : ["Email must contain @ and a domain (e.g. user@example.com)"]
+    };
+  }
+
+  function renderResults(data) {
+    // Score ring
+    const score = data.score || 0;
+    const circumference = 2 * Math.PI * 43; // ~270
+    const offset = circumference - (circumference * score / 100);
+    const ring = document.getElementById('ringFill');
+    ring.style.strokeDashoffset = circumference;
+    ring.style.stroke = score >= 70 ? 'var(--success)' : score >= 40 ? 'var(--warn)' : 'var(--error)';
+    setTimeout(() => { ring.style.strokeDashoffset = offset; }, 50);
+
+    // Animate score number
+    const scoreEl = document.getElementById('scoreValue');
+    let cur = 0;
+    const step = score / 40;
+    const timer = setInterval(() => {
+      cur = Math.min(cur + step, score);
+      scoreEl.textContent = Math.round(cur);
+      if (cur >= score) clearInterval(timer);
+    }, 25);
+
+    // Validity badge
+    const badge = document.getElementById('validityBadge');
+    badge.className = 'validity-badge ' + (data.is_valid ? 'valid' : 'invalid');
+    document.getElementById('validityIcon').textContent = data.is_valid ? '✓' : '✗';
+    document.getElementById('validityText').textContent = data.is_valid ? 'Valid Email' : 'Invalid Email';
+
+    // Email & description
+    document.getElementById('emailDisplay').textContent = data.email;
+    const descs = {
+      high: "Excellent — this email looks real and trustworthy.",
+      mid: "Acceptable — passes most checks but has minor issues.",
+      low: "Poor — this email has significant problems."
+    };
+    document.getElementById('scoreDesc').textContent =
+      score >= 70 ? descs.high : score >= 40 ? descs.mid : descs.low;
+
+    // Suggestions
+    const sugCard = document.getElementById('suggestionsCard');
+    const sugList = document.getElementById('suggestionsList');
+    if (data.suggestions && data.suggestions.length > 0) {
+      sugCard.style.display = 'block';
+      sugList.innerHTML = data.suggestions.map(s =>
+        `<div class="suggestion-item">${s}</div>`
+      ).join('');
+    } else {
+      sugCard.style.display = 'none';
+    }
+
+    // Checks
+    const grid = document.getElementById('checksGrid');
+    grid.innerHTML = '';
+    for (const [key, check] of Object.entries(data.checks)) {
+      const status = check.passed === true ? 'pass' : check.passed === false ? 'fail' : 'neutral';
+      const icon = status === 'pass' ? '✓' : status === 'fail' ? '✗' : '~';
+      grid.innerHTML += `
+        <div class="check-item ${status}">
+          <div class="check-icon ${status}">${icon}</div>
+          <div>
+            <div class="check-name">${CHECK_LABELS[key] || key}</div>
+            <div class="check-msg">${check.message}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    document.getElementById('results').classList.add('visible');
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function resetForm() {
+    document.getElementById('results').classList.remove('visible');
+    input.value = '';
+    input.focus();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
