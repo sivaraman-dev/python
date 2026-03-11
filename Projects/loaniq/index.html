@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LoanIQ — Eligibility Checker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="logo">Loan<span>IQ</span></div>
+    <div class="header-badge">Eligibility Checker</div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-eyebrow">⚡ Instant Decision</div>
+    <h1>Check Your<br/><em>Loan Eligibility</em></h1>
+    <p>Enter your details below and get an instant assessment based on age, income, and credit score.</p>
+  </section>
+
+  <div class="main-wrapper">
+    <div class="card">
+
+      <div class="card-header">
+        <div class="card-header-icon">🏦</div>
+        <div class="card-header-text">
+          <h2>Application Details</h2>
+          <p>Fill in your financial profile</p>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="field-grid">
+
+          <!-- Age -->
+          <div class="field-group">
+            <label class="field-label" for="age">Age <span>*</span></label>
+            <div class="input-wrap">
+              <input type="number" id="age" placeholder="e.g. 28" min="18" max="100" />
+            </div>
+          </div>
+
+          <!-- Annual Income -->
+          <div class="field-group">
+            <label class="field-label" for="income">Annual Income <span>*</span></label>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix">₹</span>
+              <input type="number" id="income" placeholder="e.g. 600000" min="0" />
+            </div>
+          </div>
+
+          <!-- Loan Amount Slider -->
+          <div class="field-group range-group">
+            <div class="range-header">
+              <label class="field-label">Loan Amount Requested <span>*</span></label>
+              <div class="range-value" id="loanDisplay">₹5 L <small>INR</small></div>
+            </div>
+            <input type="range" id="loanAmount" min="50000" max="5000000" step="50000" value="500000"
+              oninput="updateRange(this, 'loanDisplay', '₹', true)" />
+            <div class="range-ticks">
+              <span>₹50K</span><span>₹12.5L</span><span>₹25L</span><span>₹37.5L</span><span>₹50L</span>
+            </div>
+          </div>
+
+          <!-- Credit Score Slider -->
+          <div class="field-group">
+            <div class="range-header">
+              <label class="field-label">Credit Score <span>*</span></label>
+              <div class="range-value" id="scoreDisplay">650 <small>/ 900</small></div>
+            </div>
+            <input type="range" id="creditScore" min="300" max="900" step="10" value="650"
+              oninput="updateRange(this, 'scoreDisplay', '', false); updateScoreBars()" />
+            <div class="score-display" id="scoreBars">
+              <div class="score-bar" id="bar1"></div>
+              <div class="score-bar" id="bar2"></div>
+              <div class="score-bar" id="bar3"></div>
+              <div class="score-bar" id="bar4"></div>
+            </div>
+            <div class="score-label" id="scoreLabel" style="color: var(--muted)">Fair</div>
+          </div>
+
+          <!-- Employment Type -->
+          <div class="field-group">
+            <label class="field-label" for="employment">Employment Type <span>*</span></label>
+            <div class="input-wrap">
+              <select id="employment">
+                <option value="">— Select —</option>
+                <option value="salaried">Salaried</option>
+                <option value="self_employed">Self-Employed</option>
+                <option value="business">Business Owner</option>
+                <option value="freelance">Freelancer</option>
+                <option value="retired">Retired</option>
+                <option value="unemployed">Unemployed</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="divider"></div>
+
+        <button class="btn-check" onclick="checkEligibility()">
+          ✦ Check My Eligibility
+        </button>
+
+        <!-- Result Panel (filled by script.js) -->
+        <div class="result-panel" id="resultPanel">
+          <div class="result-inner" id="resultInner"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    LoanIQ &mdash; For educational purposes only. Not financial advice.
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
