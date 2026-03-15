@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Menu System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fafaf8;--surface:#fff;--surface2:#f4f3ef;
+  --border:#e8e6df;--border2:#d0cec6;
+  --text:#18180f;--muted:#7a7870;
+  --accent:#2d6a4f;--accent-light:#eaf4ef;
+  --warn:#c44b1c;--warn-light:#fdf0eb;
+  --r:10px;--r-sm:6px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* LAYOUT */
+.shell{display:grid;grid-template-rows:56px 1fr;grid-template-columns:1fr 320px;height:100vh;overflow:hidden}
+@media(max-width:680px){.shell{grid-template-columns:1fr;grid-template-rows:56px 1fr 300px}}
+
+/* TOPBAR */
+.topbar{grid-column:1/-1;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 22px;gap:12px}
+.logo{font-weight:700;font-size:16px;letter-spacing:-.02em}
+.logo em{font-style:normal;background:var(--text);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:8px;vertical-align:middle}
+.spacer{flex:1}
+.clock{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}
+
+/* MENU PANEL */
+.menu-panel{overflow-y:auto;padding:20px}
+.menu-panel::-webkit-scrollbar{width:4px}
+.menu-panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.fbtn{background:var(--surface);border:1.5px solid var(--border);border-radius:20px;padding:5px 14px;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s}
+.fbtn:hover{border-color:var(--border2);color:var(--text)}
+.fbtn.on{background:var(--text);border-color:var(--text);color:#fff}
+
+.sec-lbl{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px}
+
+/* ITEM CARD */
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:15px;display:flex;flex-direction:column;gap:9px;transition:border-color .15s,transform .2s;animation:up .3s ease both}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.card-name{font-weight:700;font-size:14px;line-height:1.3}
+.card-price{font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);white-space:nowrap;font-weight:500}
+.tag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;width:fit-content}
+.tag-food{background:#fef3e2;color:#a05c00}
+.tag-drinks{background:#e3f0fb;color:#1a5c8a}
+.tag-dessert{background:#fce8f3;color:#8a1a5c}
+.addbtn{margin-top:auto;width:100%;border:1.5px solid var(--border2);background:none;border-radius:var(--r-sm);padding:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;color:var(--text);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px}
+.addbtn:hover{background:var(--text);color:#fff;border-color:var(--text)}
+.addbtn:active{transform:scale(.97)}
+
+/* CART */
+.cart-panel{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+@media(max-width:680px){.cart-panel{border-left:none;border-top:1px solid var(--border)}}
+.cart-head{padding:16px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.cart-title{font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px}
+.cbadge{background:var(--warn);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;padding:0 4px}
+.cclear{background:none;border:none;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted);cursor:pointer}
+.cclear:hover{color:var(--warn)}
+
+.cart-body{flex:1;overflow-y:auto;padding:12px 18px;display:flex;flex-direction:column;gap:8px}
+.cart-body::-webkit-scrollbar{width:3px}
+.cart-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:13px;text-align:center;padding:28px;height:100%}
+.empty svg{opacity:.2}
+
+/* CART ROW */
+.crow{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;animation:slid .2s ease}
+@keyframes slid{from{opacity:0;transform:translateX(8px)}}
+.crow-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:7px}
+.crow-name{font-size:13px;font-weight:700}
+.crow-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;line-height:1;padding:0;transition:color .12s}
+.crow-del:hover{color:var(--warn)}
+.crow-bot{display:flex;align-items:center;justify-content:space-between}
+.qty{display:flex;align-items:center;gap:7px}
+.qbtn{width:23px;height:23px;border:1.5px solid var(--border2);background:var(--surface);border-radius:5px;font-size:14px;font-weight:700;cursor:pointer;display:grid;place-items:center;transition:all .12s;color:var(--text);font-family:'DM Sans',sans-serif}
+.qbtn:hover{background:var(--text);color:#fff;border-color:var(--text)}
+.qval{font-size:13px;font-weight:700;min-width:18px;text-align:center;font-family:'DM Mono',monospace}
+.crow-price{font-family:'DM Mono',monospace;font-size:12.5px;color:var(--accent);font-weight:500}
+
+/* FOOTER */
+.cart-foot{border-top:1px solid var(--border);padding:14px 18px;flex-shrink:0}
+.totals{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.trow{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+.trow span:last-child{font-family:'DM Mono',monospace}
+.trow.grand{color:var(--text);font-weight:700;font-size:15px;padding-top:7px;margin-top:2px;border-top:1px solid var(--border)}
+.trow.grand span:last-child{color:var(--accent)}
+.orderbtn{width:100%;background:var(--text);color:#fff;border:none;border-radius:var(--r);padding:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s}
+.orderbtn:hover{background:#333}
+
+/* TOAST */
+#toasts{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:5px;align-items:center;z-index:999;pointer-events:none}
+.toast{background:var(--text);color:#fff;font-size:12.5px;font-weight:500;padding:8px 16px;border-radius:20px;white-space:nowrap;animation:tin .22s ease,tout .28s ease 2.2s forwards}
+.toast.ok{background:var(--accent)}.toast.err{background:var(--warn)}
+@keyframes tin{from{opacity:0;transform:translateY(6px)}}
+@keyframes tout{to{opacity:0;transform:translateY(-4px)}}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:grid;place-items:center;animation:fad .2s ease}
+@keyframes fad{from{opacity:0}}
+.modal{background:var(--surface);border-radius:16px;padding:34px 30px;max-width:360px;width:90%;text-align:center;animation:pop .25s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{opacity:0;transform:scale(.88)}}
+.modal h2{font-size:19px;font-weight:700;margin:10px 0 4px}
+.modal .oid{font-family:'DM Mono',monospace;font-size:11.5px;color:var(--muted);margin-bottom:18px}
+.modal-total{font-size:30px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace;margin:6px 0}
+.modal-meta{font-size:12px;color:var(--muted);margin-bottom:18px}
+.modal-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:9px 22px;border-radius:var(--r);cursor:pointer}
+.modal-close:hover{background:var(--border)}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="logo">🍽️ Menu System <em>v1.0</em></div>
+    <div class="spacer"></div>
+    <div class="clock" id="clock"></div>
+  </header>
+
+  <!-- MENU -->
+  <main class="menu-panel">
+    <div class="filters" id="filters"></div>
+    <div class="sec-lbl" id="sec-lbl">All Items</div>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <!-- CART -->
+  <aside class="cart-panel">
+    <div class="cart-head">
+      <div class="cart-title">Order <span class="cbadge" id="cbadge">0</span></div>
+      <button class="cclear" onclick="clearCart()">Clear all</button>
+    </div>
+    <div class="cart-body" id="cart-body">
+      <div class="empty" id="empty-msg">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span>No items yet</span>
+        <span style="font-size:12px">Add from the menu</span>
+      </div>
+    </div>
+    <div class="cart-foot" id="cart-foot" style="display:none">
+      <div class="totals" id="totals"></div>
+      <button class="orderbtn" onclick="placeOrder()">Place Order</button>
+    </div>
+  </aside>
+
+</div>
+<div id="toasts"></div>
+
+<script>
+/* ══════════════════════════════════════
+   MENU LOGIC  (menu_logic.py equivalent)
+══════════════════════════════════════ */
+const MENU_ITEMS = [
+  {id:1,  name:"Burger",     price:5.99,  category:"Food"},
+  {id:2,  name:"Pizza",      price:8.49,  category:"Food"},
+  {id:3,  name:"Pasta",      price:7.99,  category:"Food"},
+  {id:4,  name:"Tacos",      price:6.49,  category:"Food"},
+  {id:5,  name:"Salad",      price:4.99,  category:"Food"},
+  {id:6,  name:"Coke",       price:1.99,  category:"Drinks"},
+  {id:7,  name:"Lemonade",   price:2.49,  category:"Drinks"},
+  {id:8,  name:"Coffee",     price:2.99,  category:"Drinks"},
+  {id:9,  name:"Ice Cream",  price:3.49,  category:"Dessert"},
+  {id:10, name:"Brownie",    price:3.99,  category:"Dessert"},
+];
+
+let cart = {};   // { item_id: qty }
+
+function getMenu(category = null) {
+  if (category) return MENU_ITEMS.filter(i => i.category === category);
+  return [...MENU_ITEMS];
+}
+
+function getCategories() {
+  const seen = [];
+  MENU_ITEMS.forEach(i => { if (!seen.includes(i.category)) seen.push(i.category); });
+  return seen;
+}
+
+function getItemById(id) {
+  return MENU_ITEMS.find(i => i.id === id) || null;
+}
+
+function addToCart(id, qty = 1) {
+  const item = getItemById(id);
+  if (!item) return { ok: false, error: "Item not found" };
+  cart[id] = (cart[id] || 0) + qty;
+  return { ok: true, cart: getCart() };
+}
+
+function removeFromCart(id) {
+  if (cart[id]) { delete cart[id]; return { ok: true, cart: getCart() }; }
+  return { ok: false, error: "Not in cart" };
+}
+
+function updateQty(id, qty) {
+  if (qty <= 0) return removeFromCart(id);
+  if (!getItemById(id)) return { ok: false, error: "Not found" };
+  cart[id] = qty;
+  return { ok: true, cart: getCart() };
+}
+
+function getCart() {
+  const lines = [];
+  let subtotal = 0;
+  Object.entries(cart).forEach(([id, qty]) => {
+    const item = getItemById(Number(id));
+    if (item) {
+      const line_total = Math.round(item.price * qty * 100) / 100;
+      subtotal += line_total;
+      lines.push({ ...item, qty, line_total });
+    }
+  });
+  subtotal = Math.round(subtotal * 100) / 100;
+  const tax   = Math.round(subtotal * 0.08 * 100) / 100;
+  const total = Math.round((subtotal + tax) * 100) / 100;
+  return { items: lines, subtotal, tax, total };
+}
+
+function clearCart() {
+  cart = {};
+  return { ok: true, cart: getCart() };
+}
+
+function placeOrder() {
+  const c = getCart();
+  if (!c.items.length) return { ok: false, error: "Cart is empty" };
+  const order_id = "ORD-" + String(Math.floor(Math.random() * 99999)).padStart(5, "0");
+  const summary  = { ...c };
+  cart = {};
+  return { ok: true, order_id, summary };
+}
+
+/* ══════════════════════════════════════
+   UI / FRONTEND
+══════════════════════════════════════ */
+
+// clock
+(function tick() {
+  document.getElementById("clock").textContent =
+    new Date().toLocaleTimeString("en-GB", { hour12: false });
+  setTimeout(tick, 1000);
+})();
+
+// toast
+function toast(msg, type = "") {
+  const el = document.createElement("div");
+  el.className = "toast " + type;
+  el.textContent = msg;
+  document.getElementById("toasts").appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+
+// tag class
+function tagCls(cat) {
+  return "tag tag-" + cat.toLowerCase();
+}
+
+// active filter
+let activeCat = null;
+
+// build filters
+function buildFilters() {
+  const bar = document.getElementById("filters");
+  const all = document.createElement("button");
+  all.className = "fbtn on"; all.textContent = "All";
+  all.onclick = () => setFilter(null, all);
+  bar.appendChild(all);
+
+  getCategories().forEach(cat => {
+    const btn = document.createElement("button");
+    btn.className = "fbtn"; btn.textContent = cat;
+    btn.onclick = () => setFilter(cat, btn);
+    bar.appendChild(btn);
+  });
+}
+
+function setFilter(cat, btn) {
+  activeCat = cat;
+  document.querySelectorAll(".fbtn").forEach(b => b.classList.remove("on"));
+  btn.classList.add("on");
+  document.getElementById("sec-lbl").textContent = cat || "All Items";
+  buildGrid();
+}
+
+// build item grid
+function buildGrid() {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  getMenu(activeCat).forEach((item, i) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.animationDelay = (i * 40) + "ms";
+    card.innerHTML = `
+      <div class="card-top">
+        <span class="card-name">${item.name}</span>
+        <span class="card-price">$${item.price.toFixed(2)}</span>
+      </div>
+      <span class="${tagCls(item.category)}">${item.category}</span>
+      <button class="addbtn" onclick="doAdd(${item.id},'${item.name}')">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add to order
+      </button>`;
+    grid.appendChild(card);
+  });
+}
+
+// add handler
+function doAdd(id, name) {
+  const r = addToCart(id);
+  if (r.ok) { renderCart(r.cart); toast(name + " added", "ok"); }
+}
+
+// render cart
+function renderCart(c) {
+  const body  = document.getElementById("cart-body");
+  const foot  = document.getElementById("cart-foot");
+  const badge = document.getElementById("cbadge");
+  const totEl = document.getElementById("totals");
+
+  badge.textContent = c.items.reduce((s, i) => s + i.qty, 0);
+
+  // clear old rows
+  body.querySelectorAll(".crow").forEach(r => r.remove());
+
+  const emptyMsg = document.getElementById("empty-msg");
+
+  if (!c.items.length) {
+    emptyMsg.style.display = "flex";
+    foot.style.display = "none";
+    return;
+  }
+
+  emptyMsg.style.display = "none";
+  foot.style.display = "block";
+
+  c.items.forEach(item => {
+    const row = document.createElement("div");
+    row.className = "crow";
+    row.innerHTML = `
+      <div class="crow-top">
+        <span class="crow-name">${item.name}</span>
+        <button class="crow-del" onclick="doRemove(${item.id})">✕</button>
+      </div>
+      <div class="crow-bot">
+        <div class="qty">
+          <button class="qbtn" onclick="doUpdate(${item.id},${item.qty - 1})">−</button>
+          <span class="qval">${item.qty}</span>
+          <button class="qbtn" onclick="doUpdate(${item.id},${item.qty + 1})">+</button>
+        </div>
+        <span class="crow-price">$${item.line_total.toFixed(2)}</span>
+      </div>`;
+    body.appendChild(row);
+  });
+
+  totEl.innerHTML = `
+    <div class="trow"><span>Subtotal</span><span>$${c.subtotal.toFixed(2)}</span></div>
+    <div class="trow"><span>Tax (8%)</span><span>$${c.tax.toFixed(2)}</span></div>
+    <div class="trow grand"><span>Total</span><span>$${c.total.toFixed(2)}</span></div>`;
+}
+
+function doRemove(id) {
+  const r = removeFromCart(id);
+  if (r.ok) renderCart(r.cart);
+}
+
+function doUpdate(id, qty) {
+  const r = updateQty(id, qty);
+  if (r.ok) renderCart(r.cart);
+}
+
+function clearCart() {
+  const r = window.clearCart ? clearCart() : (()=>{cart={};return{ok:true,cart:getCart()}})();
+  // call logic directly
+  cart = {};
+  renderCart(getCart());
+  toast("Cart cleared");
+}
+
+function placeOrder() {
+  const r = window.placeOrder();   // calls logic above
+  if (!r.ok) { toast(r.error, "err"); return; }
+  renderCart(getCart());
+  showModal(r.order_id, r.summary);
+}
+
+function showModal(orderId, summary) {
+  const ov = document.createElement("div");
+  ov.className = "overlay";
+  ov.innerHTML = `
+    <div class="modal">
+      <div style="font-size:38px">✅</div>
+      <h2>Order Confirmed!</h2>
+      <p class="oid">${orderId}</p>
+      <div class="modal-total">$${summary.total.toFixed(2)}</div>
+      <p class="modal-meta">${summary.items.length} item(s) · Tax included</p>
+      <button class="modal-close" onclick="this.closest('.overlay').remove()">Close</button>
+    </div>`;
+  document.body.appendChild(ov);
+  toast("Order " + orderId + " placed!", "ok");
+}
+
+// name collision fix for clearCart / placeOrder
+window.clearCart  = clearCart;
+window.placeOrder = placeOrder;
+
+// INIT
+buildFilters();
+buildGrid();
+renderCart(getCart());
+</script>
+</body>
+</html>
