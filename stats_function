@@ -1,0 +1,9 @@
+def stats(*nums):
+    return {
+        "min": min(nums),
+        "max": max(nums),
+        "sum": sum(nums),
+        "avg": sum(nums)/len(nums)
+    }
+
+print(stats(10,20,30,40))

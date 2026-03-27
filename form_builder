@@ -1,0 +1,5 @@
+def form_builder(**fields):
+    for key, value in fields.items():
+        print(f"{key} : {value}")
+
+form_builder(name="Siva", age=20, gender="Male", dept="BCA",college="SSBS College" )

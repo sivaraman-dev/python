@@ -1,0 +1,8 @@
+def celsius_to_fahrenheit(c):
+    return c * 9/5 + 32
+
+def celsius_to_kelvin(c):
+    return c + 273.15
+
+print("Celsius to Fahrenheit :",celsius_to_fahrenheit(30))
+print("Celsius to Kelvin:",celsius_to_kelvin(30))
