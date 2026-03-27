@@ -1,0 +1,34 @@
+votes = {}
+
+while True:
+    print("\nVOTING SYSTEM")
+    print("1. Vote")
+    print("2. Show Results")
+    print("3. Exit")
+
+    choice = int(input("Enter your choice: "))
+
+    if choice == 1:
+        name = input("Enter candidate name: ")
+        votes[name] = votes.get(name, 0) + 1
+        print("Vote recorded")
+
+    elif choice == 2:
+        if votes:
+            total_votes = sum(votes.values())
+            print("\nResults:")
+            for name, count in votes.items():
+                percentage = (count / total_votes) * 100
+                print(f"{name}: {count} votes ({percentage:.2f}%)")
+
+            winner = max(votes, key=votes.get)
+            print("Winner:", winner)
+        else:
+            print("No votes recorded")
+
+    elif choice == 3:
+        print("Exiting Voting System")
+        break
+
+    else:
+        print("Invalid choice")
